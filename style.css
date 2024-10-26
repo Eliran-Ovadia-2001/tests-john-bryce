@@ -1,15 +1,7 @@
-table,td {
-    border: 1px solid black;
-}
-
-form {
+tr, td { 
     border: 2px solid black;
-    border-radius: 9px;
 }
 
-html,body {
-    text-align: center;
-      height: 100vh;
-      margin: 0;
-      left: 400px;
+body { 
+    background-color: beige;
 }
