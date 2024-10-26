@@ -1,76 +1,69 @@
-function AddProduct() {
-    const ProductName = document.getElementById("ProductName")
-    const ProductPrice = document.getElementById("ProductPrice")
-    const ProductCategory = document.getElementById("ProductCategory")
-    const ProductImage = document.getElementById("ProductImage")
-    const ProductList = document.getElementById("ProductList")
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('countryForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      fetchData(document.getElementById('searchInput').value);
+    });
 
-    const name = ProductName.value
-    const price = ProductPrice.value
-    const category = ProductCategory.value
-    const image = ProductImage.value
+    document.getElementById('allBtn').addEventListener('click', function() {
+      fetchData('all');
+    });
+  });
 
-    const NameErr = document.getElementById("NameErr")
-    const PriceErr = document.getElementById("PriceErr")
-    const CategoryErr = document.getElementById("CategoryErr")
-    const ImageErr = document.getElementById("ImageErr")
-
-    NameErr.innerText = " "
-    PriceErr.innerText = " "
-    CategoryErr.innerText = " "
-    ImageErr.innerText = " "
-
-    if(name ==! " ") {
-        event.preventDefault()
-        ProductName.focus()
-        NameErr.innerText = "Invaild Product Name"
-        return
-    }
-
-    if(price ==! " " || price < 1) {
-        event.preventDefault()
-        ProductPrice.focus()
-        PriceErr.innerText = "Invaild Product Price"
-        return
-    }
-
-    if(category ==! " ") {
-        event.preventDefault()
-        ProductCategory.focus()
-        CategoryErr.innerText = "Invaild Product Category"
-        return
-    }
-
-    if(image ==! " ") {
-        event.preventDefault()
-        ProductImage.focus()
-        ImageErr.innerText = "Invaild Image Link"
-        return
+  function fetchData(query) {
+    let url = '';
+    if (query === 'all') {
+      url = 'https://restcountries.com/v3.1/all';
     } else {
-        let html = `
-                        <tr>
-                            <td>${name}</td>
-                            <td>${price}</td>
-                            <td>${category}</td>
-                            <td><img src="${image}"</td>
-                            <td><input type="button" name="del" value="Delete" onclick="delValue(this);"></td>
-                        </tr>
-                    `
-                ProductList.innerHTML += html
-                ClearValues()
+      url = 'https://restcountries.com/v3.1/name/' + query;
     }
-}
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        displayStatistics(data);
+        displayCountryDetails(data);
+        displayContinentSummary(data);
+      })
+      .catch(error => console.error('Error:', error));
+  }
 
-function ClearValues() {
-    document.getElementById("ProductName").value = " "
-    document.getElementById("ProductPrice").value = " "
-    document.getElementById("ProductCategory").value = " "
-    document.getElementById("ProductImage").value = " "
-}
+  function displayStatistics(data) {
+    const numCountries = data.length;
+    const totalPopulation = data.reduce((acc, country) => acc + country.population, 0);
+    const averagePopulation = totalPopulation / numCountries;
 
-function delValue(del) {
-    if(confirm("Are You Sure You Want To Delete?") == true) {
-        const s = del.parentNode.parentNode
-    s.parentNode.removeChild(s)
-    }
-}
+    document.getElementById('numCountries').textContent = numCountries;
+    document.getElementById('totalPopulation').textContent = totalPopulation;
+    document.getElementById('averagePopulation').textContent = Math.round(averagePopulation);
+
+    document.getElementById('statisticsTable').style.display = 'block';
+  }
+
+  function displayCountryDetails(data) {
+    const countryDetailsBody = document.getElementById('countryDetailsBody');
+    countryDetailsBody.innerHTML = '';
+    data.forEach(country => {
+      const row = '<tr><td>' + country.name.common + '</td><td>' + country.population + '</td></tr>';
+      countryDetailsBody.innerHTML += row;
+    });
+    document.getElementById('countryDetails').style.display = 'block';
+  }
+
+  function displayContinentSummary(data) {
+    const continentData = {};
+    data.forEach(country => {
+      const continent = country.region;
+      if (!continentData[continent]) {
+        continentData[continent] = 1;
+      } else {
+        continentData[continent]++;
+      }
+    });
+
+    const continentTableBody = document.getElementById('continentTableBody');
+    continentTableBody.innerHTML = '';
+    Object.keys(continentData).forEach(continent => {
+      const row = '<tr><td>' + continent + '</td><td>' + continentData[continent] + '</td></tr>';
+      continentTableBody.innerHTML += row;
+    });
+    document.getElementById('continentTable').style.display = 'block';
+  }
